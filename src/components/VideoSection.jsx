@@ -1,17 +1,16 @@
 import { useRef, useState, useEffect } from 'react';
-import { Play, Pause, Volume2, VolumeX, Maximize2, Minimize2 } from 'lucide-react';
+import { Play, Pause, Maximize2, Minimize2 } from 'lucide-react';
 import { useT } from '../hooks/useT';
 import { content } from '../data/content';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 
 /**
- * Auto-playing muted farm video tuned for maximum perceived quality:
- *  - preload="auto" so the browser fetches the entire stream up-front and never
- *    has to drop to a lower-quality fallback.
- *  - object-contain + native aspect so the source pixels are never cropped or
- *    upscaled beyond their native resolution.
- *  - GPU-accelerated compositing + subtle color grading filter to enhance
- *    perceived sharpness and color richness on bright farm scenery.
+ * Auto-playing PERMANENTLY-MUTED farm video tuned for max perceived quality:
+ *  - muted is enforced on every play/loadeddata/volumechange so it can never
+ *    produce sound even if the user fiddles with browser controls.
+ *  - preload="auto" so the browser fetches the entire stream up-front.
+ *  - object-contain + native aspect so source pixels are never cropped.
+ *  - GPU-accelerated compositing + subtle color grading filter.
  *  - Fullscreen toggle so users can watch at the largest possible resolution.
  *  - Pauses when scrolled off-screen to save bandwidth.
  */
@@ -20,7 +19,6 @@ export default function VideoSection({ src, caption, poster }) {
   const videoRef = useRef(null);
   const wrapperRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(true);
-  const [isMuted, setIsMuted] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const { ref, isVisible } = useScrollReveal();
@@ -58,6 +56,26 @@ export default function VideoSection({ src, caption, poster }) {
     return () => document.removeEventListener('fullscreenchange', onFsChange);
   }, []);
 
+  // Enforce muted state — if anything tries to unmute (browser native controls,
+  // extensions, etc.) we immediately re-mute and set volume to 0.
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    const forceMute = () => {
+      v.muted = true;
+      v.volume = 0;
+    };
+    forceMute();
+    v.addEventListener('volumechange', forceMute);
+    v.addEventListener('loadedmetadata', forceMute);
+    v.addEventListener('play', forceMute);
+    return () => {
+      v.removeEventListener('volumechange', forceMute);
+      v.removeEventListener('loadedmetadata', forceMute);
+      v.removeEventListener('play', forceMute);
+    };
+  }, []);
+
   const togglePlay = () => {
     const v = videoRef.current;
     if (!v) return;
@@ -68,13 +86,6 @@ export default function VideoSection({ src, caption, poster }) {
       v.pause();
       setIsPlaying(false);
     }
-  };
-
-  const toggleMute = () => {
-    const v = videoRef.current;
-    if (!v) return;
-    v.muted = !v.muted;
-    setIsMuted(v.muted);
   };
 
   const toggleFullscreen = async () => {
@@ -111,7 +122,6 @@ export default function VideoSection({ src, caption, poster }) {
         isVisible ? 'visible' : ''
       }`}
       style={{
-        // GPU compositing -> sharper, jitter-free frames
         transform: 'translateZ(0)',
         willChange: 'transform',
       }}
@@ -127,23 +137,20 @@ export default function VideoSection({ src, caption, poster }) {
           poster={posterSrc}
           autoPlay
           muted
+          defaultMuted
           loop
           playsInline
           preload="auto"
           disableRemotePlayback
-          controlsList="nodownload"
+          controlsList="nodownload nofullscreen noremoteplayback"
           x-webkit-airplay="deny"
           aria-label={capText}
           onLoadedData={() => setIsLoaded(true)}
           onCanPlay={() => setIsLoaded(true)}
           style={{
-            // object-contain prevents cropping & blurry upscaling
             objectFit: 'contain',
-            // Subtle perceptual grading: a bit more contrast/saturation makes the
-            // farm scenery feel sharper without altering source pixels.
             filter: 'contrast(1.06) saturate(1.1) brightness(1.02)',
             WebkitFilter: 'contrast(1.06) saturate(1.1) brightness(1.02)',
-            // Hardware acceleration hints
             transform: 'translateZ(0)',
             backfaceVisibility: 'hidden',
             imageRendering: 'auto',
@@ -166,7 +173,7 @@ export default function VideoSection({ src, caption, poster }) {
         )}
       </div>
 
-      {/* Custom overlay controls */}
+      {/* Custom overlay controls — play/pause + fullscreen only (no audio) */}
       <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 flex gap-2 sm:gap-2.5 z-10">
         <button
           type="button"
@@ -178,18 +185,6 @@ export default function VideoSection({ src, caption, poster }) {
             <Pause className="w-4 h-4 sm:w-5 sm:h-5" />
           ) : (
             <Play className="w-4 h-4 sm:w-5 sm:h-5 ml-0.5" />
-          )}
-        </button>
-        <button
-          type="button"
-          onClick={toggleMute}
-          aria-label={isMuted ? 'Unmute' : 'Mute'}
-          className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/90 hover:bg-white text-primary-dark flex items-center justify-center shadow-medium hover:scale-105 active:scale-95 transition-all backdrop-blur touch-manipulation"
-        >
-          {isMuted ? (
-            <VolumeX className="w-4 h-4 sm:w-5 sm:h-5" />
-          ) : (
-            <Volume2 className="w-4 h-4 sm:w-5 sm:h-5" />
           )}
         </button>
         <button
@@ -207,7 +202,7 @@ export default function VideoSection({ src, caption, poster }) {
       </div>
 
       {/* Caption bar */}
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent p-3 sm:p-5 pr-32 sm:pr-40 pointer-events-none">
+      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent p-3 sm:p-5 pr-24 sm:pr-32 pointer-events-none">
         <p className="text-white text-xs sm:text-sm md:text-base font-medium m-0 line-clamp-1 sm:line-clamp-none drop-shadow-md">
           {capText}
         </p>
