@@ -1,0 +1,160 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 100px;
+    /* iOS smoother scrolling */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  body {
+    @apply font-sans text-ink bg-[#fafdf9] antialiased;
+    -webkit-tap-highlight-color: transparent;
+    /* Honor iOS safe areas at the bottom (notch / home indicator) */
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    overflow-x: hidden;
+  }
+  body.lang-hi {
+    @apply font-hi;
+  }
+  img,
+  video {
+    @apply max-w-full h-auto block;
+  }
+  /* Better video rendering across browsers */
+  video {
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+  }
+  /* Prevent iOS Safari from auto-zooming on inputs (font-size MUST be >= 16px) */
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+  /* Safer line-breaking for long Hindi / English words on small screens */
+  h1, h2, h3, h4 {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    hyphens: auto;
+  }
+  /* Make all interactive elements meet 44px minimum touch target on mobile */
+  @media (max-width: 768px) {
+    button,
+    a.btn,
+    [role='button'] {
+      min-height: 44px;
+    }
+  }
+}
+
+@layer components {
+  .container-x {
+    @apply max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .section-y {
+    @apply py-12 sm:py-16 md:py-20 lg:py-24;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-3 rounded-full font-semibold text-sm
+           transition-all duration-300 whitespace-nowrap border-2 border-transparent;
+    min-height: 44px;
+  }
+  .btn-primary {
+    @apply bg-primary text-white hover:bg-primary-dark hover:-translate-y-0.5 hover:shadow-medium;
+  }
+  .btn-secondary {
+    @apply bg-accent text-white hover:bg-accent-dark hover:-translate-y-0.5 hover:shadow-medium;
+  }
+  .btn-outline {
+    @apply bg-transparent text-primary border-primary hover:bg-primary hover:text-white hover:-translate-y-0.5;
+  }
+  .btn-whatsapp {
+    @apply bg-[#25d366] text-white hover:bg-[#1da851] hover:-translate-y-0.5 hover:shadow-medium;
+  }
+  .btn-on-dark {
+    @apply text-white border-white hover:bg-white hover:text-primary-dark;
+  }
+
+  .eyebrow {
+    @apply inline-block text-[0.7rem] sm:text-xs font-semibold tracking-[2px] uppercase
+           text-primary bg-mint px-3 sm:px-4 py-1.5 sm:py-2 rounded-full mb-3 sm:mb-4;
+  }
+
+  .card {
+    @apply bg-white rounded-2xl overflow-hidden shadow-soft transition-all duration-300
+           border border-line hover:-translate-y-1.5 hover:shadow-large hover:border-leaf;
+  }
+
+  .card-badge {
+    @apply inline-block px-3 py-1 bg-mint text-primary text-[0.7rem] sm:text-xs font-semibold
+           rounded-full mb-3 uppercase tracking-wider;
+  }
+
+  .form-control {
+    @apply w-full px-4 py-3 border-2 border-line rounded-xl
+           text-ink bg-[#fafdf9] transition-all duration-300
+           focus:outline-none focus:border-primary focus:bg-white
+           focus:ring-4 focus:ring-primary/10;
+    font-size: 16px; /* iOS no-zoom */
+  }
+
+  .input-label {
+    @apply block text-xs font-semibold text-ink mb-2 uppercase tracking-wide;
+  }
+
+  .reveal {
+    @apply opacity-0 translate-y-5 transition-all duration-700;
+  }
+  .reveal.visible {
+    @apply opacity-100 translate-y-0;
+  }
+
+  /* Bottom-floating WhatsApp respects iOS home indicator */
+  .safe-bottom {
+    bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@layer utilities {
+  .gradient-hero {
+    background:
+      linear-gradient(135deg, rgba(27, 94, 32, 0.88) 0%, rgba(13, 56, 17, 0.82) 100%),
+      url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80') center/cover;
+  }
+  .gradient-banner {
+    background:
+      linear-gradient(135deg, rgba(27, 94, 32, 0.92), rgba(13, 56, 17, 0.88)),
+      url('https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1600&q=80') center/cover;
+  }
+  .gradient-cta {
+    background:
+      linear-gradient(135deg, rgba(27, 94, 32, 0.92), rgba(13, 56, 17, 0.95)),
+      url('https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=1600&q=80') center/cover;
+  }
+  .gradient-primary {
+    background: linear-gradient(135deg, #1b5e20, #0d3811);
+  }
+  .gradient-leaf {
+    background: linear-gradient(135deg, #1b5e20, #66bb6a);
+  }
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
