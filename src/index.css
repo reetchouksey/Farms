@@ -121,6 +121,40 @@
   .safe-bottom {
     bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
   }
+
+  /* Fullscreen video — fill the entire screen on any device, any orientation.
+     Strips wrapper aspect ratio, rounding, borders & decorations so the
+     portrait/landscape source video can scale to fit the viewport. */
+  .video-fs-target:fullscreen,
+  .video-fs-target:-webkit-full-screen {
+    max-width: 100vw !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    border: 0 !important;
+    background: #000 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .video-fs-target:fullscreen .video-stage,
+  .video-fs-target:-webkit-full-screen .video-stage {
+    width: 100vw !important;
+    height: 100vh !important;
+    aspect-ratio: auto !important;
+  }
+  .video-fs-target:fullscreen video,
+  .video-fs-target:-webkit-full-screen video {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+  }
+  /* Hide decorative shapes inside fullscreen */
+  .video-fs-target:fullscreen > .deco,
+  .video-fs-target:-webkit-full-screen > .deco {
+    display: none !important;
+  }
 }
 
 @layer utilities {

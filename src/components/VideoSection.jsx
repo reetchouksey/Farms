@@ -21,6 +21,7 @@ export default function VideoSection({ src, caption, poster }) {
   const [isPlaying, setIsPlaying] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isPortrait, setIsPortrait] = useState(false);
   const { ref, isVisible } = useScrollReveal();
 
   // Pause video when scrolled off-screen
@@ -118,18 +119,22 @@ export default function VideoSection({ src, caption, poster }) {
         ref.current = el;
         wrapperRef.current = el;
       }}
-      className={`relative max-w-5xl mx-auto rounded-2xl sm:rounded-3xl overflow-hidden shadow-large border border-line bg-black reveal group ${
-        isVisible ? 'visible' : ''
-      }`}
+      className={`video-fs-target relative mx-auto rounded-2xl sm:rounded-3xl overflow-hidden shadow-large border border-line bg-black reveal group ${
+        isPortrait ? 'max-w-[360px] sm:max-w-[400px] md:max-w-[460px]' : 'max-w-5xl'
+      } ${isVisible ? 'visible' : ''}`}
       style={{
         transform: 'translateZ(0)',
         willChange: 'transform',
       }}
     >
-      <div className="absolute -top-5 -left-5 w-32 h-32 bg-accent rounded-2xl -z-10 hidden lg:block" />
-      <div className="absolute -bottom-5 -right-5 w-44 h-44 bg-leaf/50 rounded-2xl -z-10 hidden lg:block" />
+      <div className="deco absolute -top-5 -left-5 w-32 h-32 bg-accent rounded-2xl -z-10 hidden lg:block" />
+      <div className="deco absolute -bottom-5 -right-5 w-44 h-44 bg-leaf/50 rounded-2xl -z-10 hidden lg:block" />
 
-      <div className="relative w-full aspect-video bg-black">
+      <div
+        className={`video-stage relative w-full bg-black flex items-center justify-center ${
+          isPortrait ? 'aspect-[9/16]' : 'aspect-video'
+        }`}
+      >
         <video
           ref={videoRef}
           className="w-full h-full block"
@@ -145,7 +150,17 @@ export default function VideoSection({ src, caption, poster }) {
           controlsList="nodownload nofullscreen noremoteplayback"
           x-webkit-airplay="deny"
           aria-label={capText}
-          onLoadedData={() => setIsLoaded(true)}
+          onLoadedData={(e) => {
+            setIsLoaded(true);
+            const vw = e.currentTarget.videoWidth;
+            const vh = e.currentTarget.videoHeight;
+            if (vw && vh) setIsPortrait(vh > vw);
+          }}
+          onLoadedMetadata={(e) => {
+            const vw = e.currentTarget.videoWidth;
+            const vh = e.currentTarget.videoHeight;
+            if (vw && vh) setIsPortrait(vh > vw);
+          }}
           onCanPlay={() => setIsLoaded(true)}
           style={{
             objectFit: 'contain',
